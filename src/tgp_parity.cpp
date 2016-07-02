@@ -216,7 +216,7 @@ void start_steady_state_tgp(t_tgp_parameters &parameters, char **training_data, 
                             new_pop_size++;
                         }
                         break;
-                    case 2: // *
+                    case 2: // nand
                         p1 = tournament_selection(current_pop, parameters.pop_size, 1);
                         p2 = tournament_selection(current_pop, parameters.pop_size, 1);
                         ps = rand() / (double) RAND_MAX;
@@ -234,7 +234,7 @@ void start_steady_state_tgp(t_tgp_parameters &parameters, char **training_data, 
                             new_pop_size++;
                         }
                         break;
-                    case 3: // /
+                    case 3: // nor
                         p1 = tournament_selection(current_pop, parameters.pop_size, 1);
                         p2 = tournament_selection(current_pop, parameters.pop_size, 1);
                         ps = rand() / (double) RAND_MAX;
