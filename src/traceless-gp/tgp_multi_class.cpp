@@ -2,7 +2,7 @@
 //  Traceless Genetic Programming - basic source code for solving multi-class classification problems
 //  (c) Mihai Oltean mihai.oltean@gmail.com
 //  github.com/mihaioltean/genetic-programming
-//  Last update on: 2016.06.21
+//  Last update on: 2016.07.03
 //  MIT License
 
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -13,6 +13,7 @@
 //---------------------------------------------------------------------------
 
 //  papers to read:
+//  Oltean Mihai, Grosan C., Using Traceless Genetic Programming for Solving Multiobjective Optimization Problems, Journal of Experimental and Theoretical Artificial Intelligence, Taylor & Francis, Vol. 19, pp. 227-248, 2007
 
 //  More info at:
 //     github.com/mihaioltean/genetic-programming
@@ -97,17 +98,18 @@ void fitness(t_tgp_chromosome &c, int num_training_data, double **training_data,
 {
   c.fitness = 0;
   for (int i = 0; i < num_training_data; i++){
-    double min = DBL_MAX;
+	  // classify it to the nearest class
+	double min = DBL_MAX;
     int actual_class = -1;
     for (int k = 0; k < num_classes; k++)
       if (fabs(c.value[i] - k) < min){
         min = fabs(c.value[i] - k);
         actual_class = k;
       }
+	// found a class for it, now see if it is equal to the real one
     if (actual_class != target[i])
       c.fitness++;
   }
-
 }
 //---------------------------------------------------------------------------
 void init_chromosome(t_tgp_chromosome &c, int num_variables, int num_training_data, double ** data)
