@@ -13,6 +13,7 @@
 //---------------------------------------------------------------------------
 
 //  papers to read:
+//  Oltean, M., Solving Even-Parity Problems using Traceless Genetic Programming, IEEE Congress on Evolutionary Computation, Portland, 19-23 June, edited by G. Greenwood (et. al), pages 1813-1819, IEEE Press, 2004.
 
 //  More info at:
 //     github.com/mihaioltean/genetic-programming
