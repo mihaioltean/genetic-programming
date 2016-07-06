@@ -111,6 +111,45 @@ void fitness(t_tgp_chromosome &c, int num_training_data, double **training_data,
       c.fitness++;
   }
 }
+
+struct s_range{
+	double min_v, max_v;
+};
+//---------------------------------------------------------------------------
+void fitness2(t_tgp_chromosome &c, int num_training_data, double **training_data, int *target, int num_classes)
+{
+	s_range *class_range = new s_range[num_classes];
+
+	for (int t = 0; t < num_classes; t++) {
+		class_range[t].min_v = DBL_MAX;
+		class_range[t].max_v = -DBL_MAX;
+	}
+
+	// find the range for each class 
+
+	for (int j = 0; j < num_training_data; j++){
+				if (class_range[target[j]].min_v > c.value[j])
+					class_range[target[j]].min_v = c.value[j];
+
+				if (class_range[t].max_v < c.value[j])
+					class_range[t].max_v = c.value[j];
+	}
+
+	c.fitness = 0;
+	for (int i = 0; i < num_training_data; i++) {
+		// classify it to the nearest class
+		double min = DBL_MAX;
+		int actual_class = -1;
+		for (int k = 0; k < num_classes; k++)
+			if (fabs(c.value[i] - k) < min) {
+				min = fabs(c.value[i] - k);
+				actual_class = k;
+			}
+		// found a class for it, now see if it is equal to the real one
+		if (actual_class != target[i])
+			c.fitness++;
+	}
+}
 //---------------------------------------------------------------------------
 void init_chromosome(t_tgp_chromosome &c, int num_variables, int num_training_data, double ** data)
 {
