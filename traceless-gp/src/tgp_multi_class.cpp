@@ -35,6 +35,7 @@
 //  and n is the number of variables.
 //  xij are the inputs
 //  fi are the outputs
+//  each output (fi) must be an integer number between 0 and the number of classes - 1
 
 
 #include <stdio.h>
@@ -91,10 +92,10 @@ void copy_chromosome(t_tgp_chromosome& dest, t_tgp_chromosome& source, int num_t
 {
   for (int i = 0; i < num_training_data; i++)
     dest.value[i] = source.value[i];
-    dest.fitness = source.fitness;
+  dest.fitness = source.fitness;
 }
 //---------------------------------------------------------------------------
-void fitness(t_tgp_chromosome &c, int num_training_data, double **training_data, int *target, int num_classes)
+void fitness(t_tgp_chromosome &c, int num_training_data, int *target, int num_classes)
 {
   c.fitness = 0;
   for (int i = 0; i < num_training_data; i++){
@@ -110,45 +111,6 @@ void fitness(t_tgp_chromosome &c, int num_training_data, double **training_data,
     if (actual_class != target[i])
       c.fitness++;
   }
-}
-
-struct s_range{
-	double min_v, max_v;
-};
-//---------------------------------------------------------------------------
-void fitness2(t_tgp_chromosome &c, int num_training_data, double **training_data, int *target, int num_classes)
-{
-	s_range *class_range = new s_range[num_classes];
-
-	for (int t = 0; t < num_classes; t++) {
-		class_range[t].min_v = DBL_MAX;
-		class_range[t].max_v = -DBL_MAX;
-	}
-
-	// find the range for each class 
-
-	for (int j = 0; j < num_training_data; j++){
-				if (class_range[target[j]].min_v > c.value[j])
-					class_range[target[j]].min_v = c.value[j];
-
-				if (class_range[t].max_v < c.value[j])
-					class_range[t].max_v = c.value[j];
-	}
-
-	c.fitness = 0;
-	for (int i = 0; i < num_training_data; i++) {
-		// classify it to the nearest class
-		double min = DBL_MAX;
-		int actual_class = -1;
-		for (int k = 0; k < num_classes; k++)
-			if (fabs(c.value[i] - k) < min) {
-				min = fabs(c.value[i] - k);
-				actual_class = k;
-			}
-		// found a class for it, now see if it is equal to the real one
-		if (actual_class != target[i])
-			c.fitness++;
-	}
 }
 //---------------------------------------------------------------------------
 void init_chromosome(t_tgp_chromosome &c, int num_variables, int num_training_data, double ** data)
@@ -195,7 +157,7 @@ int tournament_selection(t_tgp_chromosome *pop, int pop_size, int tournament_siz
     return p;
 }
 //---------------------------------------------------------------------------
-void start_steady_state_tgp(t_tgp_parameters &parameters, double **training_data, int *target, int num_training_data, int num_variables, int num_classes)
+void start_tgp(t_tgp_parameters &parameters, double **training_data, int *target, int num_training_data, int num_variables, int num_classes)
 {
     t_tgp_chromosome* current_pop, *new_pop;
     
@@ -203,7 +165,7 @@ void start_steady_state_tgp(t_tgp_parameters &parameters, double **training_data
     alocate_population(new_pop, parameters.pop_size, num_training_data);
     for (int i = 0; i < parameters.pop_size; i++){
         init_chromosome(current_pop[i], num_variables, num_training_data, training_data);
-        fitness(current_pop[i], num_training_data, training_data, target, num_classes);
+        fitness(current_pop[i], num_training_data, target, num_classes);
     }
     
     sort_by_fitness(current_pop, parameters.pop_size);
@@ -214,13 +176,13 @@ void start_steady_state_tgp(t_tgp_parameters &parameters, double **training_data
         int new_pop_size = 1;
         
         if (g % 100 == 0)
-            printf("%d %d\n", g, current_pop[0].fitness);
+            printf("generation = %d fitness (num incorrect classified) = %d\n", g, current_pop[0].fitness);
         while (new_pop_size < parameters.pop_size){
             double p = rand() / (double)RAND_MAX;
             
             if (p < parameters.insertion_probability){  // insertion of a simple program (made from a single variable)
                 init_chromosome(new_pop[new_pop_size], num_variables, num_training_data, training_data);
-                fitness(new_pop[new_pop_size], num_training_data, training_data, target, num_classes);
+                fitness(new_pop[new_pop_size], num_training_data, target, num_classes);
                 new_pop_size++;
             }
             else{  // recombination of 2 programs
@@ -239,7 +201,7 @@ void start_steady_state_tgp(t_tgp_parameters &parameters, double **training_data
                                     new_pop[new_pop_size].value[i] = current_pop[p1].value[i] + current_pop[p2].value[i];
                             
                             
-                            fitness(new_pop[new_pop_size], num_training_data, training_data, target, num_classes);
+                            fitness(new_pop[new_pop_size], num_training_data, target, num_classes);
                             new_pop_size++;
                         }
                         else{
@@ -257,7 +219,7 @@ void start_steady_state_tgp(t_tgp_parameters &parameters, double **training_data
                                 for (int i = 0; i < num_training_data; i++)
                                     new_pop[new_pop_size].value[i] = current_pop[p1].value[i] - current_pop[p2].value[i];
                           
-                            fitness(new_pop[new_pop_size], num_training_data, training_data, target, num_classes);
+                            fitness(new_pop[new_pop_size], num_training_data, target, num_classes);
                             new_pop_size++;
                         }
                         else{
@@ -275,7 +237,7 @@ void start_steady_state_tgp(t_tgp_parameters &parameters, double **training_data
                                 for (int i = 0; i < num_training_data; i++)
                                     new_pop[new_pop_size].value[i] = current_pop[p1].value[i] * current_pop[p2].value[i];
                             
-                            fitness(new_pop[new_pop_size], num_training_data, training_data, target, num_classes);
+                            fitness(new_pop[new_pop_size], num_training_data, target, num_classes);
                             new_pop_size++;
                         }
                         else{
@@ -293,7 +255,7 @@ void start_steady_state_tgp(t_tgp_parameters &parameters, double **training_data
                                 for (int i = 0; i < num_training_data; i++)
                                     new_pop[new_pop_size].value[i] = current_pop[p1].value[i] / current_pop[p2].value[i];
                         
-                            fitness(new_pop[new_pop_size], num_training_data, training_data, target, num_classes);
+                            fitness(new_pop[new_pop_size], num_training_data, target, num_classes);
                             new_pop_size++;
                         }
                         else{
@@ -314,58 +276,68 @@ void start_steady_state_tgp(t_tgp_parameters &parameters, double **training_data
     }
 }
 //---------------------------------------------------------------------------
-bool get_next_field(char *start_sir, char list_separator, char* dest, int & size)
+bool get_next_field(char *start_sir, char list_separator, char* dest, int & size, int &skip_size)
 {
-    size = 0;
-    while (start_sir[size] && (start_sir[size] != list_separator) && (start_sir[size] != '\n'))
-        size++;
-    if (!size && !start_sir[size])
-        return false;
-    strncpy(dest, start_sir, size);
-    dest[size] = '\0';
-    return true;
+	skip_size = 0;
+	while (start_sir[skip_size] && (start_sir[skip_size] != '\n') && (start_sir[skip_size] == list_separator))
+		skip_size++;// skip separator at the beginning
+
+	size = 0;
+	while (start_sir[skip_size + size] && (start_sir[skip_size + size] != list_separator) && (start_sir[skip_size + size] != '\n')) // run until a find a separator or end of line or new line char
+		size++;
+
+	if (!size || !start_sir[skip_size + size])
+		return false;
+	strncpy(dest, start_sir + skip_size, size);
+	dest[size] = '\0';
+	return true;
 }
 // ---------------------------------------------------------------------------
-bool read_training_data(const char *filename, char list_separator, double **&training_data, int *&target, int &num_training_data, int &num_variables)
+bool read_training_data(const char *filename, char list_separator, double **&data, int *&target, int &num_data, int &num_variables)
 {
-    FILE* f = fopen(filename, "r");
-    if (!f)
-        return false;
-    
-    char *buf = new char[10000];
-    char * start_buf = buf;
-    // count the number of training data and the number of variables
-    num_training_data = 0;
-    while (fgets(buf, 10000, f)) {
-        if (strlen(buf) > 1)
-            num_training_data++;
-        if (num_training_data == 1) {
-            num_variables = 0;
-            
-            char tmp_str[10000];
-            int size;
-            bool result = get_next_field(buf, list_separator, tmp_str, size);
-            while (result) {
-                buf = buf + size + 1;
-                result = get_next_field(buf, list_separator, tmp_str, size);
-                num_variables++;
-            }
-        }
-        buf = start_buf;
-    }
-    delete[] start_buf;
-    num_variables--;
-    rewind(f);
-    
-    allocate_training_data(training_data, target, num_training_data, num_variables);
-    
-    for (int i = 0; i < num_training_data; i++) {
-        for (int j = 0; j < num_variables; j++)
-            fscanf(f, "%lf", &training_data[i][j]);
-        fscanf(f, "%d", &target[i]);
-    }
-    fclose(f);
-    return true;
+	FILE* f = fopen(filename, "r");
+	if (!f) {
+		num_data = 0;
+		num_variables = 0;
+		return false;
+	}
+
+	char *buf = new char[10000];
+	char * start_buf = buf;
+	// count the number of training data and the number of variables
+	num_data = 0;
+	while (fgets(buf, 10000, f)) {
+		if (strlen(buf) > 1)
+			num_data++;
+		if (num_data == 1) {
+			num_variables = 0;
+
+			char tmp_str[10000];
+			int size;
+			int skip_size;
+			bool result = get_next_field(buf, list_separator, tmp_str, size, skip_size);
+			while (result) {
+				buf = buf + size + 1 + skip_size;
+				result = get_next_field(buf, list_separator, tmp_str, size, skip_size);
+				num_variables++;
+			}
+		}
+		buf = start_buf;
+	}
+	delete[] start_buf;
+	num_variables--;
+	rewind(f);
+
+	allocate_training_data(data, target, num_data, num_variables);
+
+	for (int i = 0; i < num_data; i++) {
+		for (int j = 0; j < num_variables; j++)
+			fscanf(f, "%lf", &data[i][j]);
+		fscanf(f, "%d", &target[i]);
+	}
+	fclose(f);
+
+	return true;
 }
 //---------------------------------------------------------------------------
 int main(void)
@@ -383,7 +355,7 @@ int main(void)
     double** training_data;
     int *target;
     
-    if (!read_training_data("data//cancer1.txt", ' ', training_data, target, num_training_data, num_variables)) {
+    if (!read_training_data("datasets//cancer1.txt", ' ', training_data, target, num_training_data, num_variables)) {
         printf("Cannot find input file! Please specify the correct (full) path!");
         getchar();
         return 1;
@@ -395,7 +367,7 @@ int main(void)
     printf("num variables = %d\n", num_variables);
     
     srand(0);
-    start_steady_state_tgp( params, training_data, target, num_training_data, num_variables, num_classes);
+    start_tgp( params, training_data, target, num_training_data, num_variables, num_classes);
     
     delete_data(training_data, target, num_training_data);
     printf("Press enter ...");
