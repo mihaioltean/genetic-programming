@@ -2,7 +2,7 @@
 //  Traceless Genetic Programming - basic source code for solving multi-class classification problems
 //  (c) Mihai Oltean mihai.oltean@gmail.com
 //  github.com/mihaioltean/genetic-programming
-//  Last update on: 2016.07.03
+//  Last update on: 2016.08.07
 //  MIT License
 
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
